@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ליגת הפנטזי הישראלית</title>
+    
+    <!-- Firebase SDKs v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- React -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Heebo', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 24px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .header { text-align: center; margin-bottom: 32px; color: white; }
+        .header h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+        .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: 'Heebo', sans-serif; font-size: 14px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        .form-control { width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; font-family: 'Heebo', sans-serif; transition: border-color 0.2s ease; }
+        .form-control:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .table th, .table td { padding: 12px; text-align: center; border-bottom: 1px solid #e1e5e9; }
+        .table th { background: #f8f9fa; font-weight: 600; color: #555; }
+        .table tr:hover { background: #f8f9fa; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-primary { background: #cce7ff; color: #004085; }
+        .match-card { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f8f9fa; border-radius: 12px; margin-bottom: 12px; }
+        .match-teams { flex: 1; text-align: center; font-weight: 600; }
+        .login-form { max-width: 400px; margin: 100px auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .login-form h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; background: #f8f9fa; border-radius: 12px; padding: 6px; overflow-x: auto; scrollbar-width: thin; }
+        .nav-tab { flex: 0 0 auto; min-width: 100px; padding: 12px 16px; background: transparent; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; color: #666; white-space: nowrap; }
+        .nav-tab.active { background: white; color: #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .prediction-input { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 12px; }
+        .team-name { font-weight: 600; text-align: center; }
+        .admin-panel { border: 2px dashed #ffc107; background: #fff8e1; }
+        .alert { padding: 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f1b2b5; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .edit-request-section { background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .pending-requests { background: #e8f4f8; border: 2px solid #bee5eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .loading { text-align: center; padding: 40px; color: white; }
+        @media (max-width: 768px) { .container { padding: 12px; } .grid { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } .card { padding: 16px; } .match-card { flex-direction: column; gap: 12px; text-align: center; } .login-form { margin: 50px auto; padding: 30px; } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        
+        // Firebase configuration - Replace with your config
+        const firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "fantasy-league-2025.somtheing.com",
+            projectId: "fantasy-league-2025",
+            storageBucket: "fantasy-league-2025.somthung.app",
+            messagingSenderId: "565656565",
+            appId: "1:565656565:web:323232"
+        };
+        
+        // Initialize Firebase
+        let auth, db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+        
+        // Complete fixtures data for all 26 rounds
+        const INITIAL_FIXTURES = (() => {
+            const rounds = [
+                { round: 1, date: "23/08/25", matches: ["הפועל פ\"ת - מכבי ת\"א", "מכבי נתניה - הפועל ב\"ש", "עירוני דורות טבריה - הפועל חיפה", "הפועל י-ם - מ.ס. אשדוד", "בני סכנין - בית\"ר י-ם", "מכבי חיפה - מכבי בני ריינה", "הפועל ת\"א - הפועל ק\"ש"] },
+                { round: 2, date: "30/08/25", matches: ["הפועל ק\"ש - הפועל פ\"ת", "מכבי בני ריינה - הפועל ת\"א", "בית\"ר י-ם - מכבי חיפה", "מ.ס. אשדוד - בני סכנין", "הפועל חיפה - הפועל י-ם", "הפועל ב\"ש - עירוני דורות טבריה", "מכבי ת\"א - מכבי נתניה"] },
+                { round: 3, date: "13/09/25", matches: ["הפועל פ\"ת - מכבי נתניה", "עירוני דורות טבריה - מכבי ת\"א", "הפועל י-ם - הפועל ב\"ש", "בני סכנין - הפועל חיפה", "מכבי חיפה - מ.ס. אשדוד", "הפועל ת\"א - בית\"ר י-ם", "הפועל ק\"ש - מכבי בני ריינה"] },
+                { round: 4, date: "20/09/25", matches: ["מכבי בני ריינה - הפועל פ\"ת", "בית\"ר י-ם - הפועל ק\"ש", "מ.ס. אשדוד - הפועל ת\"א", "הפועל חיפה - מכבי חיפה", "הפועל ב\"ש - בני סכנין", "מכבי ת\"א - הפועל י-ם", "מכבי נתניה - עירוני דורות טבריה"] },
+                { round: 5, date: "27/09/25", matches: ["הפועל פ\"ת - עירוני דורות טבריה", "הפועל י-ם - מכבי נתניה", "בני סכנין - מכבי ת\"א", "מכבי חיפה - הפועל ב\"ש", "הפועל ת\"א - הפועל חיפה", "הפועל ק\"ש - מ.ס. אשדוד", "מכבי בני ריינה - בית\"ר י-ם"] },
+                { round: 6, date: "04/10/25", matches: ["בית\"ר י-ם - הפועל פ\"ת", "מ.ס. אשדוד - מכבי בני ריינה", "הפועל חיפה - הפועל ק\"ש", "הפועל ב\"ש - הפועל ת\"א", "מכבי ת\"א - מכבי חיפה", "מכבי נתניה - בני סכנין", "עירוני דורות טבריה - הפועל י-ם"] },
+                { round: 7, date: "18/10/25", matches: ["הפועל פ\"ת - הפועל י-ם", "בני סכנין - עירוני דורות טבריה", "מכבי חיפה - מכבי נתניה", "הפועל ת\"א - מכבי ת\"א", "הפועל ק\"ש - הפועל ב\"ש", "מכבי בני ריינה - הפועל חיפה", "בית\"ר י-ם - מ.ס. אשדוד"] },
+                { round: 8, date: "25/10/25", matches: ["מ.ס. אשדוד - הפועל פ\"ת", "הפועל חיפה - בית\"ר י-ם", "הפועל ב\"ש - מכבי בני ריינה", "מכבי ת\"א - הפועל ק\"ש", "מכבי נתניה - הפועל ת\"א", "עירוני דורות טבריה - מכבי חיפה", "הפועל י-ם - בני סכנין"] },
+                { round: 9, date: "01/11/25", matches: ["הפועל פ\"ת - בני סכנין", "מכבי חיפה - הפועל י-ם", "הפועל ת\"א - עירוני דורות טבריה", "הפועל ק\"ש - מכבי נתניה", "מכבי בני ריינה - מכבי ת\"א", "בית\"ר י-ם - הפועל ב\"ש", "מ.ס. אשדוד - הפועל חיפה"] },
+                { round: 10, date: "08/11/25", matches: ["הפועל חיפה - הפועל פ\"ת", "הפועל ב\"ש - מ.ס. אשדוד", "מכבי ת\"א - בית\"ר י-ם", "מכבי נתניה - מכבי בני ריינה", "עירוני דורות טבריה - הפועל ק\"ש", "הפועל י-ם - הפועל ת\"א", "בני סכנין - מכבי חיפה"] },
+                { round: 11, date: "29/11/25", matches: ["הפועל פ\"ת - מכבי חיפה", "הפועל ת\"א - בני סכנין", "הפועל ק\"ש - הפועל י-ם", "מכבי בני ריינה - עירוני דורות טבריה", "בית\"ר י-ם - מכבי נתניה", "מ.ס. אשדוד - מכבי ת\"א", "הפועל חיפה - הפועל ב\"ש"] },
+                { round: 12, date: "02/12/25", matches: ["הפועל פ\"ת - הפועל ב\"ש", "מכבי ת\"א - הפועל חיפה", "מכבי נתניה - מ.ס. אשדוד", "עירוני דורות טבריה - בית\"ר י-ם", "הפועל י-ם - מכבי בני ריינה", "בני סכנין - הפועל ק\"ש", "מכבי חיפה - הפועל ת\"א"] },
+                { round: 13, date: "06/12/25", matches: ["הפועל ת\"א - הפועל פ\"ת", "הפועל ק\"ש - מכבי חיפה", "מכבי בני ריינה - בני סכנין", "בית\"ר י-ם - הפועל י-ם", "מ.ס. אשדוד - עירוני דורות טבריה", "הפועל חיפה - מכבי נתניה", "הפועל ב\"ש - מכבי ת\"א"] },
+                { round: 14, date: "13/12/25", matches: ["מכבי ת\"א - הפועל פ\"ת", "הפועל ב\"ש - מכבי נתניה", "הפועל חיפה - עירוני דורות טבריה", "מ.ס. אשדוד - הפועל י-ם", "בית\"ר י-ם - בני סכנין", "מכבי בני ריינה - מכבי חיפה", "הפועל ק\"ש - הפועל ת\"א"] },
+                { round: 15, date: "20/12/25", matches: ["הפועל פ\"ת - הפועל ק\"ש", "הפועל ת\"א - מכבי בני ריינה", "מכבי חיפה - בית\"ר י-ם", "בני סכנין - מ.ס. אשדוד", "הפועל י-ם - הפועל חיפה", "עירוני דורות טבריה - הפועל ב\"ש", "מכבי נתניה - מכבי ת\"א"] },
+                { round: 16, date: "30/12/25", matches: ["מכבי נתניה - הפועל פ\"ת", "מכבי ת\"א - עירוני דורות טבריה", "הפועל ב\"ש - הפועל י-ם", "הפועל חיפה - בני סכנין", "מ.ס. אשדוד - מכבי חיפה", "בית\"ר י-ם - הפועל ת\"א", "מכבי בני ריינה - הפועל ק\"ש"] },
+                { round: 17, date: "03/01/26", matches: ["הפועל פ\"ת - מכבי בני ריינה", "הפועל ק\"ש - בית\"ר י-ם", "הפועל ת\"א - מ.ס. אשדוד", "מכבי חיפה - הפועל חיפה", "בני סכנין - הפועל ב\"ש", "הפועל י-ם - מכבי ת\"א", "עירוני דורות טבריה - מכבי נתניה"] },
+                { round: 18, date: "10/01/26", matches: ["עירוני דורות טבריה - הפועל פ\"ת", "מכבי נתניה - הפועל י-ם", "מכבי ת\"א - בני סכנין", "הפועל ב\"ש - מכבי חיפה", "הפועל חיפה - הפועל ת\"א", "מ.ס. אשדוד - הפועל ק\"ש", "בית\"ר י-ם - מכבי בני ריינה"] },
+                { round: 19, date: "17/01/26", matches: ["הפועל פ\"ת - בית\"ר י-ם", "מכבי בני ריינה - מ.ס. אשדוד", "הפועל ק\"ש - הפועל חיפה", "הפועל ת\"א - הפועל ב\"ש", "מכבי חיפה - מכבי ת\"א", "בני סכנין - מכבי נתניה", "הפועל י-ם - עירוני דורות טבריה"] },
+                { round: 20, date: "24/01/26", matches: ["הפועל י-ם - הפועל פ\"ת", "עירוני דורות טבריה - בני סכנין", "מכבי נתניה - מכבי חיפה", "מכבי ת\"א - הפועל ת\"א", "הפועל ב\"ש - הפועל ק\"ש", "הפועל חיפה - מכבי בני ריינה", "מ.ס. אשדוד - בית\"ר י-ם"] },
+                { round: 21, date: "31/01/26", matches: ["הפועל פ\"ת - מ.ס. אשדוד", "בית\"ר י-ם - הפועל חיפה", "מכבי בני ריינה - הפועל ב\"ש", "הפועל ק\"ש - מכבי ת\"א", "הפועל ת\"א - מכבי נתניה", "מכבי חיפה - עירוני דורות טבריה", "בני סכנין - הפועל י-ם"] },
+                { round: 22, date: "07/02/26", matches: ["בני סכנין - הפועל פ\"ת", "הפועל י-ם - מכבי חיפה", "עירוני דורות טבריה - הפועל ת\"א", "מכבי נתניה - הפועל ק\"ש", "מכבי ת\"א - מכבי בני ריינה", "הפועל ב\"ש - בית\"ר י-ם", "הפועל חיפה - מ.ס. אשדוד"] },
+                { round: 23, date: "14/02/26", matches: ["הפועל פ\"ת - הפועל חיפה", "מ.ס. אשדוד - הפועל ב\"ש", "בית\"ר י-ם - מכבי ת\"א", "מכבי בני ריינה - מכבי נתניה", "הפועל ק\"ש - עירוני דורות טבריה", "הפועל ת\"א - הפועל י-ם", "מכבי חיפה - בני סכנין"] },
+                { round: 24, date: "21/02/26", matches: ["מכבי חיפה - הפועל פ\"ת", "בני סכנין - הפועל ת\"א", "הפועל י-ם - הפועל ק\"ש", "עירוני דורות טבריה - מכבי בני ריינה", "מכבי נתניה - בית\"ר י-ם", "מכבי ת\"א - מ.ס. אשדוד", "הפועל ב\"ש - הפועל חיפה"] },
+                { round: 25, date: "28/02/26", matches: ["הפועל ב\"ש - הפועל פ\"ת", "הפועל חיפה - מכבי ת\"א", "מ.ס. אשדוד - מכבי נתניה", "בית\"ר י-ם - עירוני דורות טבריה", "מכבי בני ריינה - הפועל י-ם", "הפועל ק\"ש - בני סכנין", "הפועל ת\"א - מכבי חיפה"] },
+                { round: 26, date: "07/03/26", matches: ["הפועל פ\"ת - הפועל ת\"א", "מכבי חיפה - הפועל ק\"ש", "בני סכנין - מכבי בני ריינה", "הפועל י-ם - בית\"ר י-ם", "עירוני דורות טבריה - מ.ס. אשדוד", "מכבי נתניה - הפועל חיפה", "מכבי ת\"א - הפועל ב\"ש"] }
+            ];
+            let matchId = 1;
+            const fixtures = [];
+            rounds.forEach(roundData => {
+                roundData.matches.forEach(matchStr => {
+                    const [homeTeam, awayTeam] = matchStr.split(' - ');
+                    fixtures.push({ 
+                        id: matchId++, 
+                        round: roundData.round, 
+                        date: roundData.date, 
+                        homeTeam: homeTeam.trim(), 
+                        awayTeam: awayTeam.trim(), 
+                        homeScore: null, 
+                        awayScore: null, 
+                        status: 'scheduled' 
+                    });
+                });
+            });
+            return fixtures;
+        })();
+        
+        // Utility functions
+        const calculateScore = (prediction, actual) => {
+            if (!prediction || actual.homeScore === null || actual.awayScore === null) return 0;
+            const [predHome, predAway] = prediction.split('-').map(s => parseInt(s.trim()));
+            const { homeScore: actHome, awayScore: actAway } = actual;
+            if (predHome === actHome && predAway === actAway) return 3;
+            const predOutcome = predHome > predAway ? 'home' : predHome < predAway ? 'away' : 'draw';
+            const actOutcome = actHome > actAway ? 'home' : actHome < actAway ? 'away' : 'draw';
+            if (predOutcome === actOutcome) return 1;
+            return 0;
+        };
+        
+        const formatDate = (dateStr) => {
+            const [day, month, year] = dateStr.split('/');
+            return `${day}/${month}/20${year}`;
+        };
+        
+        // Auth Form Component
+        const AuthForm = () => {
+            const [isLogin, setIsLogin] = useState(true);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [displayName, setDisplayName] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleAuth = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+
+                try {
+                    if (isLogin) {
+                        await auth.signInWithEmailAndPassword(email, password);
+                    } else {
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        await userCredential.user.updateProfile({ displayName });
+                        
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            displayName,
+                            email,
+                            isAdmin: email === 'admin@fantasy.com',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                } catch (error) {
+                    let errorMessage = 'אירעה שגיאה';
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                        case 'auth/wrong-password':
+                            errorMessage = 'אימייל או סיסמה שגויים';
+                            break;
+                        case 'auth/email-already-in-use':
+                            errorMessage = 'האימייל כבר בשימוש';
+                            break;
+                        case 'auth/weak-password':
+                            errorMessage = 'הסיסמה חייבת להכיל לפחות 6 תווים';
+                            break;
+                    }
+                    setError(errorMessage);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="login-form">
+                    <h2>{isLogin ? 'התחברות' : 'הרשמה'} לליגת הפנטזיה</h2>
+                    {error && <div className="alert alert-danger">{error}</div>}
+                    
+                    <form onSubmit={handleAuth}>
+                        {!isLogin && (
+                            <div className="form-group">
+                                <label>שם מלא:</label>
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    value={displayName}
+                                    onChange={(e) => setDisplayName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        )}
+                        
+                        <div className="form-group">
+                            <label>אימייל:</label>
+                            <input 
+                                type="email" 
+                                className="form-control" 
+                                value={email} onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <label>סיסמה:</label>
+                            <input 
+                                type="password" 
+                                className="form-control" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        
+                        <button 
+                            type="submit" 
+                            className="btn btn-primary" 
+                            style={{width: '100%'}}
+                            disabled={loading}
+                        >
+                            {loading ? 'מעבד...' : (isLogin ? 'התחבר' : 'הירשם')}
+                        </button>
+                    </form>
+                    
+                    <p style={{textAlign: 'center', marginTop: '20px', color: '#666'}}>
+                        {isLogin ? 'עדיין לא נרשמת?' : 'כבר יש לך חשבון?'}
+                        <button 
+                            type="button"
+                            onClick={() => setIsLogin(!isLogin)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#667eea',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                marginRight: '8px'
+                            }}
+                        >
+                            {isLogin ? 'הירשם כאן' : 'התחבר כאן'}
+                        </button>
+                    </p>
+                </div>
+            );
+        };
+
+        // Loading Component
+        const LoadingScreen = () => (
+            <div className="loading">
+                <h2>טוען את הליגה...</h2>
+                <p>מחבר לשרת...</p>
+            </div>
+        );
+
+        // Leaderboard Component
+        const Leaderboard = ({ predictions, fixtures, users }) => {
+            const leaderboard = useMemo(() => {
+                if (!users || Object.keys(users).length === 0) return [];
+                
+                const scores = Object.keys(users).map(userId => {
+                    let totalPoints = 0;
+                    let roundPoints = {};
+                    fixtures.forEach(fixture => {
+                        if (fixture.status === 'completed') {
+                            const userPredictions = predictions[userId] || {};
+                            const prediction = userPredictions[fixture.id];
+                            const points = calculateScore(prediction, fixture);
+                            totalPoints += points;
+                            if (!roundPoints[fixture.round]) roundPoints[fixture.round] = 0;
+                            roundPoints[fixture.round] += points;
+                        }
+                    });
+                    return { 
+                        userId, 
+                        name: users[userId].displayName || users[userId].name, 
+                        totalPoints, 
+                        roundPoints 
+                    };
+                });
+                return scores.sort((a, b) => b.totalPoints - a.totalPoints);
+            }, [predictions, fixtures, users]);
+
+            const completedRounds = useMemo(() => {
+                const rounds = new Set();
+                fixtures.forEach(fixture => {
+                    if (fixture.status === 'completed') rounds.add(fixture.round);
+                });
+                return Array.from(rounds).sort((a, b) => a - b).slice(0, 8);
+            }, [fixtures]);
+            
+            return (
+                <div className="card">
+                    <h3>🏆 טבלת הניקוד</h3>
+                    <p style={{color: '#666', marginBottom: '16px'}}>סה"כ {fixtures.filter(f => f.status === 'completed').length} משחקים הסתיימו</p>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>מיקום</th>
+                                <th>שם</th>
+                                <th>נקודות כללי</th>
+                                {completedRounds.map(round => <th key={round}>מחזור {round}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {leaderboard.map((player, index) => (
+                                <tr key={player.userId}>
+                                    <td>
+                                        <span className={`badge ${index === 0 ? 'badge-warning' : index < 3 ? 'badge-success' : 'badge-primary'}`}>
+                                            {index + 1}{index === 0 && ' 👑'}
+                                        </span>
+                                    </td>
+                                    <td style={{fontWeight: 'bold'}}>{player.name}</td>
+                                    <td style={{fontWeight: 'bold', fontSize: '18px', color: '#28a745'}}>{player.totalPoints}</td>
+                                    {completedRounds.map(round => <td key={round}>{player.roundPoints[round] || 0}</td>)}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        // Next Round Component
+        const NextRound = ({ fixtures, predictions, currentUser }) => {
+            const nextRound = useMemo(() => {
+                const incompleteRounds = fixtures.reduce((acc, fixture) => {
+                    if (fixture.status === 'scheduled') {
+                        if (!acc[fixture.round]) acc[fixture.round] = [];
+                        acc[fixture.round].push(fixture);
+                    }
+                    return acc;
+                }, {});
+                const nextRoundNum = Math.min(...Object.keys(incompleteRounds).map(Number));
+                return { round: nextRoundNum, matches: incompleteRounds[nextRoundNum] || [] };
+            }, [fixtures]);
+            
+            const userPredictions = predictions[currentUser.uid] || {};
+            
+            return (
+                <div className="card">
+                    <h3>📅 המחזור הקרב - מחזור {nextRound.round}</h3>
+                    <p style={{color: '#666', marginBottom: '20px'}}>
+                        {nextRound.matches.length > 0 ? formatDate(nextRound.matches[0].date) : 'אין משחקים קרובים'}
+                    </p>
+                    {nextRound.matches.map(match => (
+                        <div key={match.id} className="match-card">
+                            <div className="match-teams">{match.homeTeam} נגד {match.awayTeam}</div>
+                            <div style={{fontSize: '14px', color: '#666'}}>הניחוש שלך: {userPredictions[match.id] || 'לא נוחש'}</div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // Predictions Tab Component
+        const PredictionsTab = ({ fixtures, predictions, currentUser, setPredictions, editRequests, setEditRequests, editPermissions, setEditPermissions }) => {
+            const [roundPredictions, setRoundPredictions] = useState({});
+            const [selectedRound, setSelectedRound] = useState(1);
+            
+            const rounds = useMemo(() => {
+                const roundMap = {};
+                fixtures.forEach(fixture => {
+                    if (!roundMap[fixture.round]) roundMap[fixture.round] = [];
+                    roundMap[fixture.round].push(fixture);
+                });
+                return roundMap;
+            }, [fixtures]);
+            
+            useEffect(() => {
+                const userPreds = predictions[currentUser.uid] || {};
+                const roundPreds = {};
+                Object.keys(userPreds).forEach(matchId => { roundPreds[matchId] = userPreds[matchId]; });
+                setRoundPredictions(roundPreds);
+            }, [predictions, currentUser.uid, selectedRound]);
+            
+            const handlePredictionChange = (matchId, prediction) => {
+                setRoundPredictions(prev => ({ ...prev, [matchId]: prediction }));
+            };
+            
+            const savePredictions = async () => {
+                try {
+                    await db.collection('predictions').doc(currentUser.uid).set({
+                        ...predictions[currentUser.uid],
+                        ...roundPredictions
+                    }, { merge: true });
+                    
+                    setPredictions(prev => ({
+                        ...prev,
+                        [currentUser.uid]: { ...prev[currentUser.uid], ...roundPredictions }
+                    }));
+                    alert('הניחושים נשמרו בהצלחה!');
+                } catch (error) {
+                    console.error('Error saving predictions:', error);
+                    alert('שגיאה בשמירת הניחושים');
+                }
+            };
+            
+            const isRoundLocked = (round) => {
+                const roundMatches = rounds[round] || [];
+                return roundMatches.some(match => match.status === 'completed');
+            };
+            
+            const requestEdit = async () => {
+                try {
+                    const requestId = `${currentUser.uid}_${selectedRound}_${Date.now()}`;
+                    await db.collection('editRequests').doc(requestId).set({
+                        userId: currentUser.uid,
+                        userDisplayName: currentUser.displayName,
+                        round: selectedRound,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: 'pending'
+                    });
+                    
+                    setEditRequests(prev => ({
+                        ...prev,
+                        [requestId]: {
+                            userId: currentUser.uid,
+                            userDisplayName: currentUser.displayName,
+                            round: selectedRound,
+                            timestamp: new Date().toLocaleString('he-IL'),
+                            status: 'pending'
+                        }
+                    }));
+                    alert(`בקשת עריכה למחזור ${selectedRound} נשלחה לאישור המנהלים`);
+                } catch (error) {
+                    console.error('Error requesting edit:', error);
+                    alert('שגיאה בשליחת הבקשה');
+                }
+            };
+            
+            const canEditRound = (round) => {
+                if (currentUser.isAdmin) return true;
+                const permissionKey = `${currentUser.uid}_${round}`;
+                return editPermissions[permissionKey]?.approved || false;
+            };
+            
+            const hasPendingRequest = (round) => {
+                return Object.values(editRequests).some(req => 
+                    req.userId === currentUser.uid && req.round === round && req.status === 'pending'
+                );
+            };
+            
+            return (
+                <div className="card">
+                    <h3>🎯 ניחושים</h3>
+                    <div className="nav-tabs">
+                        {Object.keys(rounds).slice(0, 8).map(round => (
+                            <button key={round} className={`nav-tab ${selectedRound == round ? 'active' : ''}`} onClick={() => setSelectedRound(parseInt(round))}>
+                                מחזור {round}{isRoundLocked(round) && <span style={{color: '#dc3545'}}> 🔒</span>}
+                            </button>
+                        ))}
+                        {Object.keys(rounds).length > 8 && (
+                            <select 
+                                className="form-control" 
+                                style={{width: 'auto', fontSize: '14px', padding: '8px', marginRight: '8px'}}
+                                value={selectedRound > 8 ? selectedRound : ''}
+                                onChange={(e) => e.target.value && setSelectedRound(parseInt(e.target.value))}
+                            >
+                                <option value="">מחזורים 9-26...</option>
+                                {Object.keys(rounds).slice(8).map(round => (
+                                    <option key={round} value={round}>
+                                        מחזור {round} {isRoundLocked(round) ? '🔒' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                    
+                    {!currentUser.isAdmin && !canEditRound(selectedRound) && (
+                        <div className="edit-request-section">
+                            <h4>🔐 עריכת ניחושים</h4>
+                            <p style={{marginBottom: '12px', color: '#856404'}}>כדי לערוך ניחושים במחזור זה, עליך לבקש אישור מהמנהלים</p>
+                            {hasPendingRequest(selectedRound) ? (
+                                <div style={{color: '#0c5460', fontWeight: '600'}}>⏳ בקשת העריכה שלך נמצאת בהמתנה לאישור</div>
+                            ) : (
+                                <button className="btn btn-warning" onClick={requestEdit}>📝 בקש עריכה למחזור {selectedRound}</button>
+                            )}
+                        </div>
+                    )}
+                    
+                    {isRoundLocked(selectedRound) && (
+                        <div className="alert alert-warning">מחזור זה נעול - המשחקים כבר החלו או הסתיימו</div>
+                    )}
+                    
+                    <div style={{marginBottom: '20px'}}>
+                        {(rounds[selectedRound] || []).map(match => (
+                            <div key={match.id} className="prediction-input">
+                                <div className="team-name">{match.homeTeam}</div>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="0-0"
+                                    value={roundPredictions[match.id] || ''}
+                                    onChange={(e) => handlePredictionChange(match.id, e.target.value)}
+                                    disabled={isRoundLocked(selectedRound) || (!currentUser.isAdmin && !canEditRound(selectedRound))}
+                                    style={{width: '80px', textAlign: 'center'}}
+                                />
+                                <div className="team-name">{match.awayTeam}</div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {!isRoundLocked(selectedRound) && (currentUser.isAdmin || canEditRound(selectedRound)) && (
+                        <button className="btn btn-success" onClick={savePredictions}>💾 שמור ניחושים</button>
+                    )}
+                </div>
+            );
+        };
+            
+        const ResultsTab = ({ fixtures }) => {
+            const [selectedRound, setSelectedRound] = useState(1);
+            
+            const rounds = useMemo(() => {
+                const roundMap = {};
+                fixtures.forEach(fixture => {
+                    if (!roundMap[fixture.round]) roundMap[fixture.round] = [];
+                    roundMap[fixture.round].push(fixture);
+                });
+                return roundMap;
+            }, [fixtures]);
+            
+            return (
+                <div className="card">
+                    <h3>📊 תוצאות ומשחקים</h3>
+                    <div className="nav-tabs">
+                        {Object.keys(rounds).slice(0, 8).map(round => (
+                            <button key={round} className={`nav-tab ${selectedRound == round ? 'active' : ''}`} onClick={() => setSelectedRound(parseInt(round))}>
+                                מחזור {round}
+                            </button>
+                        ))}
+                        {Object.keys(rounds).length > 8 && (
+                            <select 
+                                className="form-control" 
+                                style={{width: 'auto', fontSize: '14px', padding: '8px', marginRight: '8px'}}
+                                value={selectedRound > 8 ? selectedRound : ''}
+                                onChange={(e) => e.target.value && setSelectedRound(parseInt(e.target.value))}
+                            >
+                                <option value="">מחזורים 9-26...</option>
+                                {Object.keys(rounds).slice(8).map(round => (
+                                    <option key={round} value={round}>מחזור {round}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                    <div>
+                        {(rounds[selectedRound] || []).map(match => (
+                            <div key={match.id} className="match-card">
+                                <div className="match-teams">{match.homeTeam} נגד {match.awayTeam}</div>
+                                <div style={{textAlign: 'center'}}>
+                                    <div style={{fontSize: '14px', color: '#666', marginBottom: '8px'}}>{formatDate(match.date)}</div>
+                                    {match.status === 'completed' ? (
+                                        <div style={{fontSize: '18px', fontWeight: 'bold', color: '#28a745'}}>{match.homeScore} - {match.awayScore}</div>
+                                    ) : (
+                                        <span className="badge badge-warning">טרם נערך</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // My Predictions Tab Component
+        const MyPredictionsTab = ({ fixtures, predictions, currentUser }) => {
+            const [selectedRound, setSelectedRound] = useState(1);
+            
+            const rounds = useMemo(() => {
+                const roundMap = {};
+                fixtures.forEach(fixture => {
+                    if (!roundMap[fixture.round]) roundMap[fixture.round] = [];
+                    roundMap[fixture.round].push(fixture);
+                });
+                return roundMap;
+            }, [fixtures]);
+            
+            const userPredictions = predictions[currentUser.uid] || {};
+            
+            return (
+                <div className="card">
+                    <h3>📈 הניחושים שלי</h3>
+                    <div className="nav-tabs">
+                        {Object.keys(rounds).slice(0, 8).map(round => (
+                            <button key={round} className={`nav-tab ${selectedRound == round ? 'active' : ''}`} onClick={() => setSelectedRound(parseInt(round))}>
+                                מחזור {round}
+                            </button>
+                        ))}
+                        {Object.keys(rounds).length > 8 && (
+                            <select 
+                                className="form-control" 
+                                style={{width: 'auto', fontSize: '14px', padding: '8px', marginRight: '8px'}}
+                                value={selectedRound > 8 ? selectedRound : ''}
+                                onChange={(e) => e.target.value && setSelectedRound(parseInt(e.target.value))}
+                            >
+                                <option value="">מחזורים 9-26...</option>
+                                {Object.keys(rounds).slice(8).map(round => (
+                                    <option key={round} value={round}>מחזור {round}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                    <table className="table">
+                        <thead>
+                            <tr><th>משחק</th><th>הניחוש שלי</th><th>תוצאה</th><th>נקודות</th></tr>
+                        </thead>
+                        <tbody>
+                            {(rounds[selectedRound] || []).map(match => {
+                                const prediction = userPredictions[match.id];
+                                const points = match.status === 'completed' ? calculateScore(prediction, match) : null;
+                                return (
+                                    <tr key={match.id}>
+                                        <td>{match.homeTeam} נגד {match.awayTeam}</td>
+                                        <td style={{fontWeight: 'bold'}}>
+                                            {prediction || <span style={{color: '#999'}}>לא נוחש</span>}
+                                        </td>
+                                        <td>
+                                            {match.status === 'completed' ? (
+                                                <span style={{fontWeight: 'bold'}}>{match.homeScore} - {match.awayScore}</span>
+                                            ) : (
+                                                <span className="badge badge-warning">טרם נערך</span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {points !== null ? (
+                                                <span className={`badge ${points === 3 ? 'badge-success' : points === 1 ? 'badge-warning' : 'badge-danger'}`}>
+                                                    {points} נק'
+                                                </span>
+                                            ) : '-'}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        // Admin Panel Component
+        const AdminPanel = ({ fixtures, setFixtures, editRequests, setEditRequests, editPermissions, setEditPermissions }) => {
+            const [selectedMatch, setSelectedMatch] = useState('');
+            const [homeScore, setHomeScore] = useState('');
+            const [awayScore, setAwayScore] = useState('');
+            
+            const updateMatchResult = async () => {
+                if (!selectedMatch || homeScore === '' || awayScore === '') {
+                    alert('יש למלא את כל השדות');
+                    return;
+                }
+                
+                try {
+                    const matchData = {
+                        homeScore: parseInt(homeScore),
+                        awayScore: parseInt(awayScore),
+                        status: 'completed'
+                    };
+                    
+                    await db.collection('fixtures').doc(selectedMatch).update(matchData);
+                    
+                    setFixtures(prev => prev.map(fixture => 
+                        fixture.id == selectedMatch ? { ...fixture, ...matchData } : fixture
+                    ));
+                    
+                    setSelectedMatch('');
+                    setHomeScore('');
+                    setAwayScore('');
+                    alert('התוצאה עודכנה בהצלחה!');
+                } catch (error) {
+                    console.error('Error updating match:', error);
+                    alert('שגיאה בעדכון התוצאה');
+                }
+            };
+            
+            const addSampleResults = async () => {
+                try {
+                    const batch = db.batch();
+                    fixtures.slice(0, 7).forEach(fixture => {
+                        const fixtureRef = db.collection('fixtures').doc(fixture.id.toString());
+                        batch.update(fixtureRef, {
+                            homeScore: Math.floor(Math.random() * 4),
+                            awayScore: Math.floor(Math.random() * 4),
+                            status: 'completed'
+                        });
+                    });
+                    
+                    await batch.commit();
+                    
+                    setFixtures(prev => prev.map((fixture, index) => 
+                        index < 7 ? {
+                            ...fixture,
+                            homeScore: Math.floor(Math.random() * 4),
+                            awayScore: Math.floor(Math.random() * 4),
+                            status: 'completed'
+                        } : fixture
+                    ));
+                    
+                    alert('נוספו תוצאות לדוגמה למחזור הראשון');
+                } catch (error) {
+                    console.error('Error adding sample results:', error);
+                    alert('שגיאה בהוספת תוצאות לדוגמה');
+                }
+            };
+            
+            const handleEditRequest = async (requestId, action) => {
+                const request = editRequests[requestId];
+                if (!request) return;
+                
+                try {
+                    if (action === 'approve') {
+                        const permissionKey = `${request.userId}_${request.round}`;
+                        
+                        await db.collection('editPermissions').doc(permissionKey).set({
+                            approved: true,
+                            approvedBy: 'admin',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        await db.collection('editRequests').doc(requestId).update({
+                            status: 'approved'
+                        });
+                        
+                        setEditPermissions(prev => ({
+                            ...prev,
+                            [permissionKey]: {
+                                approved: true,
+                                approvedBy: 'admin',
+                                timestamp: new Date().toLocaleString('he-IL')
+                            }
+                        }));
+                        
+                        alert(`בקשת העריכה של ${request.userDisplayName} למחזור ${request.round} אושרה!`);
+                    } else if (action === 'reject') {
+                        await db.collection('editRequests').doc(requestId).update({
+                            status: 'rejected'
+                        });
+                        
+                        alert(`בקשת העריכה של ${request.userDisplayName} למחזור ${request.round} נדחתה`);
+                    }
+                    
+                    setEditRequests(prev => ({
+                        ...prev,
+                        [requestId]: { ...prev[requestId], status: action === 'approve' ? 'approved' : 'rejected' }
+                    }));
+                } catch (error) {
+                    console.error('Error handling edit request:', error);
+                    alert('שגיאה בטיפול בבקשה');
+                }
+            };
+            
+            const pendingRequests = Object.entries(editRequests).filter(([id, req]) => req.status === 'pending');
+            
+            return (
+                <div className="card admin-panel">
+                    <h3>⚙️ פאנל ניהול</h3>
+                    <p style={{color: '#856404', marginBottom: '20px'}}>🔐 אזור מנהלים בלבד</p>
+                    
+                    {pendingRequests.length > 0 && (
+                        <div className="pending-requests">
+                            <h4>📋 בקשות עריכה ממתנות ({pendingRequests.length})</h4>
+                            {pendingRequests.map(([requestId, request]) => (
+                                <div key={requestId} style={{
+                                    background: 'white',
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    marginBottom: '12px',
+                                    border: '1px solid #bee5eb'
+                                }}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px'}}>
+                                        <div>
+                                            <strong>{request.userDisplayName}</strong> מבקש לערוך את <strong>מחזור {request.round}</strong>
+                                            <div style={{fontSize: '12px', color: '#666'}}>{request.timestamp}</div>
+                                        </div>
+                                        <div style={{display: 'flex', gap: '8px'}}>
+                                            <button className="btn btn-success" style={{padding: '6px 12px', fontSize: '12px'}} onClick={() => handleEditRequest(requestId, 'approve')}>
+                                                ✅ אשר
+                                            </button>
+                                            <button className="btn btn-danger" style={{padding: '6px 12px', fontSize: '12px'}} onClick={() => handleEditRequest(requestId, 'reject')}>
+                                                ❌ דחה
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    
+                    <div className="grid">
+                        <div>
+                            <h4>עדכון תוצאות משחק</h4>
+                            <div className="form-group">
+                                <label>בחר משחק:</label>
+                                <select className="form-control" value={selectedMatch} onChange={(e) => setSelectedMatch(e.target.value)}>
+                                    <option value="">בחר משחק...</option>
+                                    {fixtures.filter(f => f.status === 'scheduled').map(fixture => (
+                                        <option key={fixture.id} value={fixture.id}>
+                                            {fixture.homeTeam} נגד {fixture.awayTeam} (מחזור {fixture.round})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <div style={{display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '12px', alignItems: 'end'}}>
+                                <div className="form-group">
+                                    <label>בית:</label>
+                                    <input type="number" className="form-control" value={homeScore} onChange={(e) => setHomeScore(e.target.value)} min="0" max="20" />
+                                </div>
+                                <div style={{fontSize: '24px', fontWeight: 'bold', textAlign: 'center'}}>-</div>
+                                <div className="form-group">
+                                    <label>חוץ:</label>
+                                    <input type="number" className="form-control" value={awayScore} onChange={(e) => setAwayScore(e.target.value)} min="0" max="20" />
+                                </div>
+                            </div>
+                            
+                            <button className="btn btn-success" onClick={updateMatchResult}>💾 עדכן תוצאה</button>
+                        </div>
+                        
+                        <div>
+                            <h4>פעולות נוספות</h4>
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                                <button className="btn btn-warning" onClick={() => alert('הניקוד חושב מחדש!')}>🔄 חשב ניקוד מחדש</button>
+                                <button className="btn btn-primary" onClick={addSampleResults}>🎲 הוסף תוצאות לדוגמה</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const FantasyLeagueApp = () => {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [fixtures, setFixtures] = useState(INITIAL_FIXTURES);
+            const [predictions, setPredictions] = useState({});
+            const [editRequests, setEditRequests] = useState({});
+            const [editPermissions, setEditPermissions] = useState({});
+            const [users, setUsers] = useState({});
+
+            // Load data from Firebase
+            useEffect(() => {
+                const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        try {
+                            const userDoc = await db.collection('users').doc(user.uid).get();
+                            const userData = userDoc.exists ? userDoc.data() : {};
+                            
+                            setCurrentUser({
+                                uid: user.uid,
+                                email: user.email,
+                                displayName: user.displayName || userData.displayName || 'משתמש',
+                                isAdmin: userData.isAdmin || false
+                            });
+                            
+                            // Load fixtures
+                            const fixturesSnapshot = await db.collection('fixtures').get();
+                            if (!fixturesSnapshot.empty) {
+                                const fixturesData = fixturesSnapshot.docs.map(doc => ({
+                                    ...doc.data(),
+                                    id: parseInt(doc.id)
+                                }));
+                                setFixtures(fixturesData.sort((a, b) => a.id - b.id));
+                            } else {
+                                // Initialize fixtures in Firebase
+                                const batch = db.batch();
+                                INITIAL_FIXTURES.forEach(fixture => {
+                                    const fixtureRef = db.collection('fixtures').doc(fixture.id.toString());
+                                    batch.set(fixtureRef, fixture);
+                                });
+                                await batch.commit();
+                            }
+                            
+                            // Load all users
+                            const usersSnapshot = await db.collection('users').get();
+                            const usersData = {};
+                            usersSnapshot.docs.forEach(doc => {
+                                usersData[doc.id] = doc.data();
+                            });
+                            setUsers(usersData);
+                            
+                            // Load predictions
+                            const predictionsSnapshot = await db.collection('predictions').get();
+                            const predictionsData = {};
+                            predictionsSnapshot.docs.forEach(doc => {
+                                predictionsData[doc.id] = doc.data();
+                            });
+                            setPredictions(predictionsData);
+                            
+                            // Load edit requests
+                            const requestsSnapshot = await db.collection('editRequests').get();
+                            const requestsData = {};
+                            requestsSnapshot.docs.forEach(doc => {
+                                const data = doc.data();
+                                requestsData[doc.id] = {
+                                    ...data,
+                                    timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString('he-IL') : new Date().toLocaleString('he-IL')
+                                };
+                            });
+                            setEditRequests(requestsData);
+
+                            // Load edit permissions
+                            const permissionsSnapshot = await db.collection('editPermissions').get();
+                            const permissionsData = {};
+                            permissionsSnapshot.docs.forEach(doc => {
+                                const data = doc.data();
+                                permissionsData[doc.id] = {
+                                    ...data,
+                                    timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString('he-IL') : new Date().toLocaleString('he-IL')
+                                };
+                            });
+                            setEditPermissions(permissionsData);
+                            
+                        } catch (error) {
+                            console.error('Error loading user data:', error);
+                        }
+                    } else {
+                        setCurrentUser(null);
+                    }
+                    setLoading(false);
+                });
+
+                return unsubscribeAuth;
+            }, []);
+
+            if (loading) {
+                return <LoadingScreen />;
+            }
+
+            if (!currentUser) {
+                return <AuthForm />;
+            }
+
+            const tabs = [
+                { id: 'dashboard', label: '🏠 לוח בקרה' },
+                { id: 'predictions', label: '🎯 ניחושים' },
+                { id: 'results', label: '📊 תוצאות' },
+                { id: 'my-predictions', label: '📈 הניחושים שלי' },
+                ...(currentUser.isAdmin ? [{ id: 'admin', label: '⚙️ ניהול' }] : [])
+            ];
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1>🏆 ליגת הפנטזיה הישראלית</h1>
+                        <p>ברוך הבא, {currentUser.displayName}!</p>
+                        <p style={{fontSize: '14px', opacity: 0.8}}>עונת 2025/26 - {INITIAL_FIXTURES.length} משחקים - 26 מחזורים</p>
+                        <button 
+                            className="btn btn-danger" 
+                            onClick={() => auth.signOut()} 
+                            style={{marginTop: '16px'}}
+                        >
+                            🚪 התנתק
+                        </button>
+                    </div>
+
+                    <div className="container">
+                        <div className="nav-tabs" style={{marginBottom: '24px'}}>
+                            {tabs.map(tab => (
+                                <button 
+                                    key={tab.id} 
+                                    className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`} 
+                                    onClick={() => setActiveTab(tab.id)}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {activeTab === 'dashboard' && (
+                            <div className="grid grid-2">
+                                <Leaderboard predictions={predictions} fixtures={fixtures} users={users} />
+                                <NextRound fixtures={fixtures} predictions={predictions} currentUser={currentUser} />
+                            </div>
+                        )}
+                        
+                        {activeTab === 'predictions' && (
+                            <PredictionsTab 
+                                fixtures={fixtures}
+                                predictions={predictions}
+                                currentUser={currentUser}
+                                setPredictions={setPredictions}
+                                editRequests={editRequests}
+                                setEditRequests={setEditRequests}
+                                editPermissions={editPermissions}
+                                setEditPermissions={setEditPermissions}
+                            />
+                        )}
+                        
+                        {activeTab === 'results' && (
+                            <ResultsTab fixtures={fixtures} />
+                        )}
+                        
+                        {activeTab === 'my-predictions' && (
+                            <MyPredictionsTab fixtures={fixtures} predictions={predictions} currentUser={currentUser} />
+                        )}
+                        
+                        {activeTab === 'admin' && currentUser.isAdmin && (
+                            <AdminPanel 
+                                fixtures={fixtures}
+                                setFixtures={setFixtures}
+                                editRequests={editRequests}
+                                setEditRequests={setEditRequests}
+                                editPermissions={editPermissions}
+                                setEditPermissions={setEditPermissions}
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(React.createElement(FantasyLeagueApp), document.getElementById('root'));
+    </script>
+</body>
+</html>
